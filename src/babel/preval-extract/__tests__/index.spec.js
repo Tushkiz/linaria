@@ -56,7 +56,7 @@ describe('preval-extract babel plugin', () => {
     process.env.BABEL_ENV = '';
   });
 
-  it('should not process tagged template if tag is not `css`', () => {
+  it('should not process tagged template if tag is not "css"', () => {
     const { code } = transpile(dedent`
     const header = \`
       font-size: 3em;
@@ -77,7 +77,7 @@ describe('preval-extract babel plugin', () => {
     expect(code).toMatchSnapshot();
   });
 
-  it('should throw error if `css` tagged template literal is not assigned to a variable', () => {
+  it('should throw error if "css" tagged template literal is not assigned to a variable', () => {
     expect(() => {
       transpile(dedent`
       css\`
@@ -107,117 +107,13 @@ describe('preval-extract babel plugin', () => {
     }).toThrowErrorMatchingSnapshot();
   });
 
-  it('should create classname for `css` tagged template literal', () => {
-    const { code, results } = transpile(dedent`
-    const header = css\`
-      font-size: 3em;
-    \`;
-    `);
-
-    const match = /header = "(header__[a-z0-9]+)"/g.exec(code);
-    expect(match).not.toBeNull();
-    const css = filterResults(results, match);
-    expect(css).toMatch('font-size: 3em');
-    expect(css).toMatchSnapshot();
-  });
-
-  it('in development should use filename for slug creation', () => {
-    const { code: codeWithSlugFromContent } = transpile(dedent`
-    const header = css\`
-      font-size: 3em;
-    \`;
-    `);
-
-    process.env.BABEL_ENV = '';
-    const { code: codeWithSlugFromFilename } = transpile(
-      dedent`
-      const header = css\`
-        font-size: 3em;
-      \`;
-      `,
-      undefined,
-      { filename: path.join(process.cwd(), 'test.js') }
-    );
-    process.env.BABEL_ENV = 'production';
-
-    const classnameWithSlugFromContent = /header = "(header__[a-z0-9]+)"/g.exec(
-      codeWithSlugFromContent
-    );
-    const classnameWithSlugFromFilename = /header = "(header__[a-z0-9]+)"/g.exec(
-      codeWithSlugFromFilename
-    );
-
-    expect(classnameWithSlugFromContent).not.toBeNull();
-    expect(classnameWithSlugFromFilename).not.toBeNull();
-    expect(classnameWithSlugFromContent[0]).not.toEqual(
-      codeWithSlugFromFilename[0]
-    );
-  });
-
-  it('should create classname for `css.named()` tagged template literal', () => {
-    const { code, results } = transpile(dedent`
-    const header = css.named('my-header')\`
-      font-size: 3em;
-    \`;
-    `);
-
-    const match = /header = "(my-header__[a-z0-9]+)"/g.exec(code);
-    expect(match).not.toBeNull();
-    const css = filterResults(results, match);
-    expect(css).toMatch('font-size: 3em');
-    expect(css).toMatchSnapshot();
-  });
-
-  it('should create classnames for multiple `css` tagged template literal', () => {
-    const { code, results } = transpile(dedent`
-    const header = css\`
-      font-size: ${'${2 + 1}'}em;
-    \`;
-
-    const body = css\`
-      border-radius: ${'${2 + 2}'}px;
-    \`;
-    `);
-
-    const headerMatch = /header = "(header__[a-z0-9]+)"/g.exec(code);
-    const bodyMatch = /body = "(body__[a-z0-9]+)"/g.exec(code);
-    expect(headerMatch).not.toBeNull();
-    expect(bodyMatch).not.toBeNull();
-    const headerStyles = filterResults(results, headerMatch);
-    const bodyStyles = filterResults(results, bodyMatch);
-    expect(headerStyles).toMatch('font-size: 3em');
-    expect(headerStyles).toMatchSnapshot();
-    expect(bodyStyles).toMatch('border-radius: 4px');
-    expect(bodyStyles).toMatchSnapshot();
-  });
-
-  it('should create classname for non-top-level `css` tagged template literal', () => {
-    const { code, results } = transpile(dedent`
-    const defaults = {
-      fontSize: '3em',
-    };
-
-    function render() {
-      const header = css\`
-        font-size: ${'${defaults.fontSize}'};
-      \`;
-    }
-    `);
-
-    const match = /header = "(header__[a-z0-9]+)"/g.exec(code);
-    expect(match).not.toBeNull();
-    const css = filterResults(results, match);
-    expect(css).toMatch('font-size: 3em');
-    expect(css).toMatchSnapshot();
-  });
-
   it('should preval const and let without transpilation to var', () => {
     const { code, results } = transpile(
       dedent`
       const size = 3;
       let color = '#ffffff';
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${size}'}em;
         color: ${'${color}'};
       \`;
@@ -236,11 +132,11 @@ describe('preval-extract babel plugin', () => {
 
   it('should preval css with classname from another prevaled css', () => {
     const { code, results } = transpile(dedent`
-    const title = css\`
+    const title = css.named('title')\`
     color: blue;
     \`;
 
-    const container = css\`
+    const container = css.named('container')\`
     padding: 2rem;
 
     .${'${title}'} {
@@ -267,7 +163,7 @@ describe('preval-extract babel plugin', () => {
         fontSize: '3em',
       };
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${constants.fontSize}'};
       \`;
       `);
@@ -291,7 +187,7 @@ describe('preval-extract babel plugin', () => {
         },
       };
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${constants.header.default.font.size}'};
       \`;
       `);
@@ -313,7 +209,7 @@ describe('preval-extract babel plugin', () => {
         },
       };
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${base.font.size}'};
       \`;
       `);
@@ -335,7 +231,7 @@ describe('preval-extract babel plugin', () => {
         },
       };
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${size}'};
       \`;
       `);
@@ -357,7 +253,7 @@ describe('preval-extract babel plugin', () => {
         },
       };
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${baseFontSize}'};
       \`;
       `);
@@ -377,7 +273,7 @@ describe('preval-extract babel plugin', () => {
         },
       };
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${baseFontSize}'};
       \`;
       `);
@@ -395,7 +291,7 @@ describe('preval-extract babel plugin', () => {
       const { code, results } = transpile(dedent`
       const constants = require('./src/babel/preval-extract/__tests__/__fixtures__/commonjs/constants.js');
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${constants.fontSize}'};
       \`;
       `);
@@ -411,7 +307,7 @@ describe('preval-extract babel plugin', () => {
       const { code, results } = transpile(dedent`
       const { fontSize } = require('./src/babel/preval-extract/__tests__/__fixtures__/commonjs/constants.js');
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${fontSize}'};
       \`;
       `);
@@ -429,7 +325,7 @@ describe('preval-extract babel plugin', () => {
       const { code, results } = transpile(dedent`
       import constants from './src/babel/preval-extract/__tests__/__fixtures__/esm/constants.js';
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${constants.fontSize}'};
       \`;
       `);
@@ -445,11 +341,11 @@ describe('preval-extract babel plugin', () => {
       const { code, results } = transpile(dedent`
       import { base, primary } from './src/babel/preval-extract/__tests__/__fixtures__/esm/named.js';
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${primary.fontSize}'};
       \`;
 
-      const body = css\`
+      const body = css.named('body')\`
         font-size: ${'${base.fontSize}'};
       \`;
       `);
@@ -470,7 +366,7 @@ describe('preval-extract babel plugin', () => {
       const { code, results } = transpile(dedent`
       import constants from './src/babel/preval-extract/__tests__/__fixtures__/esm/deep.js';
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${constants.fontSize}'};
       \`;
       `);
@@ -492,7 +388,7 @@ describe('preval-extract babel plugin', () => {
         };
       }
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${getConstants().fontSize}'};
       \`;
       `);
@@ -512,7 +408,7 @@ describe('preval-extract babel plugin', () => {
         };
       }
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${getConstants().fontSize}'};
       \`;
       `);
@@ -530,7 +426,7 @@ describe('preval-extract babel plugin', () => {
         fontSize: '14px',
       });
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${getConstants().fontSize}'};
       \`;
       `);
@@ -547,7 +443,7 @@ describe('preval-extract babel plugin', () => {
       const defaults = { fontSize: '14px' };
       const getConstants = () => Object.assign({}, defaults);
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${getConstants().fontSize}'};
       \`;
       `);
@@ -565,7 +461,7 @@ describe('preval-extract babel plugin', () => {
       const defaults = { fontSize: '14px', ...base };
       const getConstants = () => ({ ...defaults });
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${getConstants().fontSize}'};
       \`;
       `);
@@ -588,7 +484,7 @@ describe('preval-extract babel plugin', () => {
       const defaults = { fontSize: '14px', ...base, ...bg };
       const getConstants = () => ({ ...defaults });
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${getConstants().fontSize}'};
       \`;
       `);
@@ -607,7 +503,7 @@ describe('preval-extract babel plugin', () => {
       const constants = require('./src/babel/preval-extract/__tests__/__fixtures__/commonjs/constants.js');
       const utils = require('./src/babel/preval-extract/__tests__/__fixtures__/commonjs/utils.js');
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${utils.multiply(constants.unitless.fontSize)}'}px;
       \`;
       `);
@@ -630,7 +526,7 @@ describe('preval-extract babel plugin', () => {
         }, value);
       }
 
-      const header = css\`
+      const header = css.named('header')\`
         font-size: ${'${compose(utils.multiply, utils.add5)(constants.unitless.fontSize)}'}px;
       \`;
       `);

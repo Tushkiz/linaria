@@ -3,8 +3,9 @@
 module.exports = function linariaBabelPreset(context, opts = {}) {
   return {
     plugins: [
-      [require('./build/babel/preval-extract').default, opts],
-      [require('./build/babel/rewire-imports').default, opts],
+      [require('./build/babel/plugins/better-names').default, opts],
+      [require('./build/babel/plugins/preval-extract').default, opts],
+      [require('./build/babel/plugins/rewire-imports').default, opts],
     ],
   };
 };

@@ -68,7 +68,6 @@ export default function(
   state: State,
   requirements: string
 ) {
-  const title = path.parent.id.name;
   const env = process.env.BABEL_ENV || process.env.NODE_ENV;
 
   const replacement = `
@@ -76,14 +75,7 @@ export default function(
 
   import '${require.resolve('./register')}';
   ${requirements}
-  module.exports = ${path
-    .getSource()
-    .replace(
-      /css(?!\.named)/g,
-      env === 'production'
-        ? `css.named('${title}')`
-        : `css.named('${title}', '${state.filename}')`
-    )}
+  module.exports = ${path.getSource()}
   `;
 
   /* $FlowFixMe */

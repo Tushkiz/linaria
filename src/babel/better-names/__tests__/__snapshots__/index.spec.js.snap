@@ -1,0 +1,47 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should convert \`css\` to \`css.named\` for multiple literals 1`] = `
+"const header = css.named(\\"header\\", \\"unknown\\")\`
+  font-size: \${2 + 1}em;
+\`;
+
+const body = css.named(\\"body\\", \\"unknown\\")\`
+  border-radius: \${2 + 2}px;
+\`;"
+`;
+
+exports[`should convert \`css\` to \`css.named\` with filename 1`] = `
+"const header = css.named(\\"header\\", \\"Header.js\\")\`
+  font-size: 3em;
+\`;"
+`;
+
+exports[`should convert \`css\` to \`css.named\` without filename 1`] = `
+"const header = css.named(\\"header\\")\`
+  font-size: 3em;
+\`;"
+`;
+
+exports[`should convert non-top-level \`css\` to \`css.named\` 1`] = `
+"const defaults = {
+  fontSize: '3em'
+};
+
+function render() {
+  const header = css.named('header', 'unknown')\`
+    font-size: \${defaults.fontSize};
+  \`;
+}"
+`;
+
+exports[`should not convert \`css.named()\` literal 1`] = `
+"const header = css.named('my-header')\`
+  font-size: 3em;
+\`;"
+`;
+
+exports[`should not convert random tags 1`] = `
+"const header = scss\`
+  font-size: 3em;
+\`;"
+`;
