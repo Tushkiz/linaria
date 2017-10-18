@@ -212,8 +212,15 @@ describe('preval-extract/index', () => {
           },
           parentPath: {
             isVariableDeclarator: () => true,
+            node: {},
+          },
+          parent: {
+            id: {
+              name: 'test',
+            },
           },
           traverse: () => {},
+          findParent: () => null,
         },
         {
           skipFile: false,

@@ -13,7 +13,6 @@ import type {
 import {
   shouldTraverseExternalIds,
   isLinariaTaggedTemplate,
-  ensureTagIsAssignedToAVariable,
   isExcluded,
 } from './validators';
 import { getSelfBinding } from './utils';
@@ -90,17 +89,70 @@ export default (babel: BabelCore) => {
         state: State
       ) {
         if (!state.skipFile && isLinariaTaggedTemplate(types, path)) {
-          ensureTagIsAssignedToAVariable(path);
+          let title;
+          let isProperty;
+          let propertykind;
+
+          if (path.parentPath.isVariableDeclarator()) {
+            title = path.parent.id.name;
+          } else {
+            // TODO: add tests for object properties and JSX
+            const parent = path.findParent(
+              p => p.isObjectProperty() || p.isJSXOpeningElement()
+            );
+
+            if (parent) {
+              isProperty = true;
+
+              if (parent.isJSXOpeningElement()) {
+                title = parent.node.name.name;
+                propertykind = 'expression';
+              } else {
+                title = parent.node.key.name;
+                propertykind = 'value';
+              }
+            } else {
+              throw path.buildCodeFrameError(
+                "Couldn't determine the class name for CSS template literal. Ensure that it's either:\n" +
+                  '- Assigned to a variable\n' +
+                  '- Is an object property\n' +
+                  '- Is a prop in a JSX element'
+              );
+            }
+          }
 
           state.foundLinariaTaggedLiterals = true;
 
           const requirements: RequirementSource[] = [];
+
           path.traverse(cssTaggedTemplateRequirementsVisitor, {
             requirements,
             types,
           });
 
-          prevalStyles(babel, path, state, requirements);
+          // TODO: add tests for comment and class name
+          const className = prevalStyles(
+            babel,
+            title,
+            path,
+            state,
+            requirements
+          );
+          const leadingComments = [
+            {
+              type: 'CommentBlock',
+              value: 'linaria-output',
+            },
+          ];
+
+          if (isProperty) {
+            path.parentPath.node[propertykind] = className;
+            /* $FlowFixMe */
+            className.leadingComments = leadingComments;
+          } else {
+            path.parentPath.node.init = className;
+            path.parentPath.node.leadingComments = leadingComments;
+          }
         }
       },
     },
